@@ -1,0 +1,30 @@
+
+full_deck 
+shuffle full_deck
+deal 5 CARDS per player using a loop that gives a player hits max 5 CARDS
+check largest valid group first
+if true return winner(Player X)
+    false -> draw_cards function draw_cards
+def draw_cards:
+    populate table list with cards drawn with restriction of max=1(can be inc later)
+    then append table to players hand with condition player_hand=20
+    delete drawn card from the full_deck
+    
+check largest valid group for the updated players hand 
+    if true return winner(Player X)
+
+If valid group,have function to count the cards in valid groups,if valid_groups.count=player_hand.count:
+                                                    return player X winner and end game
+                                                                else:
+                                                                    draw_cards
+                                                        
+
+                                                    
+                                                    
+                        
+    
+    
+    
+        
+    
+    
