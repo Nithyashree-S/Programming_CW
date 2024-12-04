@@ -22,6 +22,14 @@ class Card:
 
     def __str__(self):
         return f'{self.colour}_{self.number}'
+    
+    def __eq__(self, other):
+        if isinstance(other, Card):
+            return self.colour == other.colour and self.number == other.number
+        return False
+
+    def __hash__(self):
+        return hash((self.colour, self.number))
 
 class CollectionOfCards:
     def __init__(self, notty_cards_list):
@@ -199,8 +207,8 @@ snatch_button_area = pygame.Rect(snatch_button_x, snatch_button_y, snatch_button
 
 discard_prompt = False  # Tracks if the discard prompt should be shown
 discard_cards = []  # Tracks cards to discard
-yes_button_area = pygame.Rect(200, 500, 120, 40)  # Yes button position
-no_button_area = pygame.Rect(350, 500, 120, 40)  # No button position
+yes_button_area = pygame.Rect(20, 250, 120, 40)  # Yes button position
+no_button_area = pygame.Rect(170, 250, 120, 40)  # No button position
 
 # Load assets
 card_images = {}
@@ -271,10 +279,10 @@ def display_cards(player_id, x, y, spacing=30):
     
     if valid_groups[player_id]:
         current_x += 120
-        pygame.draw.line(screen, (255, 255, 255),
-                        (current_x - 20, y),
-                        (current_x - 20, y + 140),
-                        2)
+        # pygame.draw.line(screen, (255, 255, 255),
+        #                 (current_x - 20, y),
+        #                 (current_x - 20, y + 140),
+        #                 2)
         
         font = pygame.font.Font(None, 20)
         label = font.render("Valid Group", True, (255, 255, 255))
@@ -289,10 +297,10 @@ def display_cards(player_id, x, y, spacing=30):
     if largest_groups[player_id] and len(largest_groups[player_id]) > 3:
         if largest_card_strs != valid_card_strs:
             current_x += 120
-            pygame.draw.line(screen, (255, 215, 0),
-                           (current_x - 20, y),
-                           (current_x - 20, y + 140),
-                           2)
+            # pygame.draw.line(screen, (255, 215, 0),
+            #                (current_x - 20, y),
+            #                (current_x - 20, y + 140),
+            #                2)
             
             font = pygame.font.Font(None, 20)
             label = font.render("Largest Group", True, (255, 215, 0))
@@ -361,7 +369,7 @@ def draw_message():
             current_y += surface.get_height() + line_spacing
 
 def check_hand_validity(player_id):
-    global valid_groups, largest_groups, message, discard_prompt, discard_cards
+    global valid_groups, largest_groups, message, discard_prompt, discard_cards,discarding_player
     player_name = "Human" if player_id == 1 else "Computer"
     current_message = message
     
@@ -391,12 +399,17 @@ def check_hand_validity(player_id):
     if player_id == 1 and valid_group:  # Human player discard prompt
         discard_prompt = True
         discard_cards = valid_group
+        discarding_player = 1
     elif player_id == 2 and valid_group:  # AI discard decision
         ai_decision = random.choice(["yes", "no"])
-        print(f"AI decides to discard: {ai_decision.upper()}")
+        print(f"AI decides to discard: {ai_decision}")
         if ai_decision == "yes":
+            print(f"AI decides to discard: {ai_decision}")
+            discarding_player=2
             discard_group(2)
         else:
+            print(f"AI decides to discard: {ai_decision}")
+
             print("AI skips discarding.")
 
 def handle_card_addition(player_id):
@@ -586,23 +599,44 @@ def snatch_card():
     else:
         print("Human cannot snatch - no cards available")  
         return False
-
 def discard_group(player_id):
     global discard_cards, discard_prompt, message, full_deck
     if discard_cards:
+
         print(f"Player {player_id} discards: {[str(card) for card in discard_cards]}")
-        # Remove the discarded cards from the player's hand
-        player_hands[player_id] = [card for card in player_hands[player_id] if card not in discard_cards]
-        full_deck.extend([str(card) for card in discard_cards])  # Return cards to deck
-        shuffle_deck()  # Shuffle the deck
-        shuffle_animation()  # Trigger shuffle animation
+        discard_cards_str = [str(card) for card in discard_cards]
+        # Remove the discarded cards from the player's hand immediately
+        print('before', player_hands)
+        player_hands[player_id] = [
+            card for card in player_hands[player_id] if str(card) not in discard_cards_str
+        ]
+
+
         
+        # Add the discarded cards to the deck
+        discard_cards_name = [str(card) for card in discard_cards]
+        full_deck.extend(discard_cards_name)
+        print("after", player_hands)
+        random.shuffle(full_deck)  # Shuffle the deck
+        
+        # Clear discard-related variables
         discard_cards.clear()
         valid_groups[player_id] = None
         largest_groups[player_id] = None
+        
+        # Re-check hand validity
         check_hand_validity(player_id)
-    discard_prompt = False
-    message = "Cards discarded and reshuffled!"
+        
+        # Clear discard prompt
+        discard_prompt = False
+
+        # Update the message
+        message = "Cards discarded and reshuffled!"
+
+        # Trigger a shuffle animation if desired
+        shuffle_animation()
+
+
 
 def shuffle_animation():
     shuffle_sound.play()
@@ -616,6 +650,8 @@ def shuffle_animation():
 # Main game loop
 running = True
 while running:
+    draw_message()
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -710,30 +746,32 @@ while running:
     if discard_prompt:
         font = pygame.font.Font(None, 30)
         prompt_text = font.render("Do you wish to discard now?", True, (255, 255, 255))
-        screen.blit(prompt_text, (200, 460))
-        draw_button("Yes", 200, 500, 120, 40, color=(0, 200, 0))
-        draw_button("No", 350, 500, 120, 40, color=(200, 0, 0))
+        screen.blit(prompt_text, (20, 210))
+        draw_button("Yes", 20, 250, 120, 40, color=(0, 200, 0))
+        draw_button("No", 170, 250, 120, 40, color=(200, 0, 0))
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if yes_button_area.collidepoint(mouse_pos):  # Yes button clicked
-                discard_group(current_player)
+                print("yes button clicked for player ", discarding_player)
+                discard_group(discarding_player)
                 discard_prompt = False
 
                 # If current player is AI, let it proceed with the rest of its turn
                 if current_player == 2:
+                    print('current player is ai')
                     ai_turn()
                 else:
                     current_player = 2  # Human finishes; move to AI's turn
 
             elif no_button_area.collidepoint(mouse_pos):  # No button clicked
                 discard_prompt = False
-                check_hand_validity(current_player)  # Check if another valid group exists
+                check_hand_validity(discarding_player)  # Check if another valid group exists
                 if discard_prompt:
                     # If another valid group exists, the prompt will reappear in the next frame
                     message = "You must discard a valid group!"
                 else:
                     # If no valid group exists, proceed to the next turn
-                    if current_player == 2:
+                    if discarding_player == 2:
                         ai_turn()
                     else:
                         current_player = 2
@@ -754,7 +792,6 @@ while running:
         message_timer = current_time
 
     # Draw message
-    draw_message()
 
     pygame.display.flip()
     clock.tick(30)
