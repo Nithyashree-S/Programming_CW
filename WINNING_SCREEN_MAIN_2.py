@@ -1,6 +1,7 @@
 import pygame
 import button2
 import os
+import Main_code_2_player
 
 SCREEN_HEIGHT = 768
 SCREEN_WIDTH = 1024
@@ -13,6 +14,7 @@ red = (255, 192, 203)
 
 #Notty loop
 def winning_screen():
+    global player_id
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption('Notty game start')
     font = pygame.font.SysFont("Arial", 36)
@@ -49,7 +51,7 @@ def winning_screen():
             if event.type == pygame.QUIT:
                 return False
 
-        txtsurface = font.render("Game Over - Play Again?", True, black)
+        txtsurface = font.render(f"Player {player_id} Wins!", True, black)
         screen.blit(txtsurface,(512 - txtsurface.get_width() // 2, 250 - txtsurface.get_height() // 2))
         pygame.display.update()
 

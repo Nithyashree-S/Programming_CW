@@ -1,10 +1,7 @@
 import pygame
 import os
 import random
-import START_SCREEN_MAIN_2 #ET
-import WINNING_SCREEN_MAIN_2 #ET
 pygame.init()
-
 
 # Constants and Configuration
 CARD_IMAGES = "card_images/"
@@ -231,6 +228,167 @@ dealing_index = 0
 deal_frame_delay = 10
 frame_count = 0
 
+#ET~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+black = (0, 0, 0)
+blue = (173, 216, 230)
+red = (255, 192, 203)
+
+#button class
+class Button(): #changed from inheriting Graphic default class to just Button class
+    def __init__(self, x, y, image, scale):
+        width = image.get_width()
+        height = image.get_height()
+        self.unscaled_image = image
+        self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
+        self.rectangle = self.image.get_rect()
+        self.rectangle.topleft = (x, y)
+        self.clicked = False
+
+    def draw(self, screen):
+        click = False
+        screen.blit(self.image, (self.rectangle.x, self.rectangle.y))
+
+        #check mouse hovering over button
+        curser_position = pygame.mouse.get_pos()
+
+        if self.rectangle.collidepoint(curser_position):
+            #scale up button at hover
+            self.image = pygame.transform.scale(self.unscaled_image, (int(self.rectangle.width * 1.1), int(self.rectangle.height * 1.1)))
+            #if clicked return to default scale
+            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+                self.clicked = True
+                click = True
+                self.image = pygame.transform.scale(self.image, (int(self.rectangle.width), int(self.rectangle.height)))
+            elif pygame.mouse.get_pressed()[0] == 0:
+                self.clicked = False
+        else:
+            #reset when not hover
+            self.image = pygame.transform.scale(self.unscaled_image, (int(self.rectangle.width), int(self.rectangle.height)))
+
+        return click
+
+def start_screen():
+    screen = pygame.display.set_mode((screen_width, screen_height))
+    pygame.display.set_caption('Notty game start')
+    font = pygame.font.SysFont("Arial", 36)
+
+    #image paths
+    GAME_IMAGES = "game_images/"
+    START_IMAGE_PATH = os.path.join(GAME_IMAGES, "start-button-vector.png")
+    EXIT_IMAGE_PATH = os.path.join(GAME_IMAGES, "Exit-button.png")
+
+    #load button images
+    start_button_image = pygame.image.load(START_IMAGE_PATH).convert_alpha()
+    exit_button_image = pygame.image.load(EXIT_IMAGE_PATH).convert_alpha()
+
+    #create buttons
+    start_button = Button(370, 300, start_button_image, 0.2)
+    exit_button = Button(450, 450, exit_button_image, 0.5)
+    running = True
+    while running:
+        #screen colour
+        screen.fill(blue)
+        
+        #if start button clicked: run main game
+        if start_button.draw(screen):
+            return True
+
+        #if exit button clicked: Quit Game
+        if exit_button.draw(screen):
+            return False
+
+        #events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            
+        txtsurface = font.render("Welcome to Notty!", True, black)
+        screen.blit(txtsurface,(512 - txtsurface.get_width() // 2, 150 - txtsurface.get_height() // 2))
+        pygame.display.update()
+
+    return False
+
+def winning_screen():
+    global player_id
+    screen = pygame.display.set_mode((screen_width, screen_height))
+    pygame.display.set_caption('Notty game start')
+    font = pygame.font.SysFont("Arial", 36)
+
+    #image paths
+    GAME_IMAGES = "game_images/"
+    START_IMAGE_PATH = os.path.join(GAME_IMAGES, "start-button-vector.png")
+    EXIT_IMAGE_PATH = os.path.join(GAME_IMAGES, "Exit-button.png")
+
+    #load button images
+    start_button_image = pygame.image.load(START_IMAGE_PATH).convert_alpha()
+    exit_button_image = pygame.image.load(EXIT_IMAGE_PATH).convert_alpha()
+
+    #create buttons
+    start_button = Button(370, 300, start_button_image, 0.2)
+    exit_button = Button(450, 450, exit_button_image, 0.5)
+
+    running = True
+    while running:
+        
+        #screen colour
+        screen.fill(red)
+        
+        #if start button clicked: run main game
+        if start_button.draw(screen):
+            return True
+
+        #if exit button clicked: Quit Game
+        if exit_button.draw(screen):
+            return False
+
+        #events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+
+        txtsurface = font.render(f"Player {player_id} Wins!", True, black)
+        screen.blit(txtsurface,(512 - txtsurface.get_width() // 2, 250 - txtsurface.get_height() // 2))
+        pygame.display.update()
+
+    return False
+
+def check_winning_state(player_id, player_hands): #check win fucntion
+    global message
+#    if not player_hands[player_id]: #if player hand empty
+    if player_hands[player_id] >5:
+        print(f"Player {player_id} wins the game!") # Debug
+        message = f"Player {player_id} Wins!" #screen win message
+        pygame.time.wait(2000) #delay to display message before transition
+        winning_screen()
+
+def reset_game():
+    """Reset all variables to their initial state for a new game."""
+    global player_hands, current_player, drawn_cards, full_deck, shuffle_complete, shuffle_count, dealing, dealing_index, frame_count
+
+    # Reset player hands
+    player_hands = {1: [], 2: []}  # Example for 2 players
+
+    # Reset turn and drawn cards
+    current_player = 1
+    drawn_cards = []
+
+    # Recreate and shuffle the deck
+    full_deck = create_deck()
+    full_deck.extend(full_deck.copy())
+    random.shuffle(full_deck)
+
+    # Reset shuffle and dealing variables
+    shuffle_complete = False
+    shuffle_count = 0
+    dealing = True
+    dealing_index = 0
+    frame_count = 0
+
+    winning_screen()
+
+    print("Game has been reset. A new game can be started!")
+#ET~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 def draw_button(text, x, y, width, height, color=(0, 122, 204), text_color=(0, 0, 0)):
     pygame.draw.rect(screen, color, (x, y, width, height))
     font = pygame.font.Font(None, 28)
@@ -421,7 +579,7 @@ def handle_discard(player_id):
         player_hands[player_id] = [card for card in player_hands[player_id] 
                                  if card not in discarded_cards]
         
-        #ET 
+        #ET~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         check_winning_state(player_id, player_hands)
         
         valid_groups[player_id] = None
@@ -692,21 +850,12 @@ def snatch_card():
         print("Human cannot snatch - no cards available")  # Debug
         message = "No cards available to snatch!"
         return False
-    
-#ET    
-def check_winning_state(player_id, player_hands): #check win fucntion
-    global message
-    if not player_hands[player_id]: #if player hand empty
-        print(f"Player {player_id} wins the game!") # Debug
-        message = f"Player {player_id} Wins!" #screen win message
-        pygame.time.wait(2000) #delay to display message before transition
-        WINNING_SCREEN_MAIN_2.winning_screen()
 
 # Main game loop
-def main_game_loop(): #ET
+def main_game_loop(): #ET~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    #ET
-    global current_player, drawn_cards, player_hands, message, waiting_for_discard_decision, \
+    #ET~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    global current_player, drawn_cards, player_hands, message, waiting_for_discard_decision, player_id, player_hands, \
     dealing_index, shuffle_complete, dealing, ai_turn_timer, message_timer, frame_count, deck_x, deck_y
 
     running = True
@@ -842,19 +991,20 @@ def main_game_loop(): #ET
 
     pygame.quit()
 
-#ET
+#ET~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if __name__ == "__main__":
     while True:
-        start = START_SCREEN_MAIN_2.start_screen()
-        if start:
+        start = start_screen()
+        if start == True:
             main_game_loop()
 
-            play_again = WINNING_SCREEN_MAIN_2.winning_screen()
-            if play_again:
-                continue
+            play_again = winning_screen()
+            if play_again == True:
+                reset_game()
             else:
                 pygame.quit()
                 break
         else:
             pygame.quit()
             break
+#ET~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

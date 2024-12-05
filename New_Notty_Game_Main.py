@@ -1,4 +1,4 @@
-# - Ed's code - version_2
+# - Ed's code
 import pygame
 from pygame.locals import *
 pygame.init()
