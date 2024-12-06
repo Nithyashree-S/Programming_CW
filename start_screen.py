@@ -17,9 +17,9 @@ BLACK = (0, 0, 0)
 GOLD = (255, 215, 0)
 BACKGROUND_COLOR = (15, 20, 45)  # Background color for the main screen
 GREEN = (0, 200, 0)  # Green for "1 Player" and "2 Player" buttons
-LIGHT_GREEN = (0, 255, 0)  # Lighter green for hover effect
+LIGHT_GREEN = (0, 255, 0)  
 RED = (200, 0, 0)  # Red for the "Exit" button
-LIGHT_RED = (255, 100, 100)  # Lighter red for hover effect
+LIGHT_RED = (255, 100, 100) 
 
 # Screen setup
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -31,7 +31,7 @@ small_font = pygame.font.Font(None, 36)
 
 # Load UNO card images
 notty_card_images = []
-for i in range(1, 5):  # Replace with actual filenames
+for i in range(1, 5): 
     image = pygame.image.load(f"game_images/notty_card_{i}.png").convert_alpha()
     notty_card_images.append(pygame.transform.scale(image, (80, 120)))
 
@@ -60,8 +60,7 @@ def update_snake_animation(snake_cards):
     card_spacing = 100
     for card in snake_cards:
         # Move card horizontally
-        card["x"] += 4  # Move to the right
-        # Move card vertically in a sine-wave pattern
+        card["x"] += 4  
         card["y"] = SCREEN_HEIGHT - 150 + int(20 * math.sin(card["x"] / 50))
 
         # Reset position if card exits the screen
@@ -109,9 +108,9 @@ def start_screen():
         screen.blit(title_text, (SCREEN_WIDTH // 2 - title_text.get_width() // 2, 150))
 
         # Draw the 1 Player, 2 Player, and Exit buttons
-        draw_text_button("1 Player", 400, 300, 200, 50, GREEN, LIGHT_GREEN,
+        draw_text_button("Play 2 player ", 400, 300, 200, 50, GREEN, LIGHT_GREEN,
                          lambda: run_game("1 Player"))
-        draw_text_button("2 Player", 400, 375, 200, 50, GREEN, LIGHT_GREEN,
+        draw_text_button("Play 3 Player", 400, 375, 200, 50, GREEN, LIGHT_GREEN,
                          lambda: run_game("2 Player"))
         draw_text_button("Exit", 400, 450, 200, 50, RED, LIGHT_RED,
                          lambda: run_game("Exit"))

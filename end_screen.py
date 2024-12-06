@@ -32,7 +32,7 @@ small_font = pygame.font.Font(None, 36)
 
 # Load Uno card images
 notty_card_images = []
-for i in range(1, 5):  # Replace with actual filenames
+for i in range(1, 5): 
     image = pygame.image.load(f"game_images/notty_card_{i}.png").convert_alpha()
     notty_card_images.append(pygame.transform.scale(image, (100, 150)))
 
@@ -57,7 +57,7 @@ class FireworkParticle:
         self.x += self.dx
         self.y += self.dy
         self.lifetime -= 1
-        self.alpha = max(0, int((self.lifetime / 60) * 255))  # Gradual fade
+        self.alpha = max(0, int((self.lifetime / 60) * 255))  
 
     def draw(self, surface):
         if self.lifetime > 0:
@@ -83,10 +83,10 @@ def create_card_firework_center():
     """
     return {
         "image": random.choice(notty_card_images),
-        "x": SCREEN_WIDTH // 2 - 50,  # Center horizontally
-        "y": SCREEN_HEIGHT - 100,    # Start at the bottom of the screen
-        "dx": 0,                     # No horizontal movement
-        "dy": -5,                    # Move upward
+        "x": SCREEN_WIDTH // 2 - 50,  
+        "y": SCREEN_HEIGHT - 100,    
+        "dx": 0,                     
+        "dy": -5,                   
         "stage": "launch",
         "timer": 0
     }
@@ -116,7 +116,7 @@ def animate_fireworks(particles, surface):
             particles.remove(particle)
 
 # Load crying emoji image
-crying_emoji = pygame.image.load("game_images/crying_emoji.png")  # Replace with the actual path
+crying_emoji = pygame.image.load("game_images/crying_emoji.png")  
 crying_emoji = pygame.transform.scale(crying_emoji, (100, 100))  # Resize as needed
 
 def draw_button(surface, text, x, y, width, height, font, button_color, text_color, hover_color, action=None):
@@ -185,9 +185,7 @@ def show_winning_screen(winner_name, user_name):
         else:
             draw_text("Sorry, You Lost!", font, (255, 0, 0), screen, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 5)
 
-        # Display the winner's name
-        #draw_text("The winner is:", small_font, WHITE, screen, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3)
-        #draw_text(f"{winner_name}", font, GREEN, screen, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2.5)
+       
 
         if is_user_winner:
             # Create a single card firework from one side
@@ -227,7 +225,7 @@ if __name__ == "__main__":
     user_name = "Player 1"
 
     # Assuming the winner's name is fetched from another file
-    winner_name = "Player 1"  # Replace this with the actual winner name
+    winner_name = "Player 1"  
 
     # Show the winning screen
     show_winning_screen(winner_name, user_name)

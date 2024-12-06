@@ -18,6 +18,13 @@ clock = pygame.time.Clock()
 
 
 class Card:
+    """
+    Represents a single card in the game.
+
+    Attributes:
+        colour (str): The color of the card (e.g., 'red', 'blue').
+        number (int): The number on the card (0-9).
+    """
     def __init__(self, colour, number):
         assert isinstance(number, int)
         self.colour = colour
@@ -28,6 +35,12 @@ class Card:
 
 
 class CollectionOfCards:
+    """Represents a collection of cards and provides function to validate
+    and finding groups of cards.
+
+    Attributes:
+        collection (list): A list of Card objects.
+    """
     def __init__(self, notty_cards_list):
         self.collection = []
         for card_info in notty_cards_list:
@@ -36,6 +49,14 @@ class CollectionOfCards:
             self.collection.append(card)
 
     def is_valid_group(self):
+        """Checks if the collection contains a valid group of cards.
+        - A valid group is:
+            - At least 3 cards with consecutive numbers of the same color, OR
+            - At least 3 cards of the same number but different colors.
+
+        Returns:
+            bool: True if the group is valid, False otherwise.
+        """
         if len(self.collection) < 3:
             return False
 
@@ -43,14 +64,17 @@ class CollectionOfCards:
         number_groups = {}
 
         for card in self.collection:
+            # Group by color
             if card.colour not in color_groups:
                 color_groups[card.colour] = []
             color_groups[card.colour].append(card.number)
 
+            # Group by number
             if card.number not in number_groups:
                 number_groups[card.number] = []
             number_groups[card.number].append(card.colour)
 
+        # Check for consecutive numbers of the same color
         if len(color_groups) == 1:
             for group_color, group_numbers in color_groups.items():
                 if len(group_numbers) >= 3:
@@ -61,7 +85,7 @@ class CollectionOfCards:
                     ):
                         return True
                 break
-
+        # Check for same numbers with different colors
         if len(number_groups) == 1:
             for group_number, group_colors in number_groups.items():
                 if len(group_colors) >= 3 and len(set(group_colors)) == len(group_colors):
@@ -69,7 +93,8 @@ class CollectionOfCards:
                 break
 
         return False
-
+    
+    
     def find_valid_group(self):
         print("Searching for valid group...")  # Debug
         number_groups = {}
@@ -165,6 +190,14 @@ class CollectionOfCards:
 
 
 class GameState:
+    """
+    Represents the overall state of the game.
+
+    Attributes:
+        player_hands (dict): Cards held by Player 1 and the AI.
+        current_player (int): The currnt player's turn (1 for Player 1, 2 for AI).
+        full_deck (list): The full deck of cards used in game 
+    """
     def __init__(self):
         # Game state variables
         self.player_hands = {1: [], 2: []}
@@ -206,10 +239,10 @@ total_width = deck_width + (game_state.max_draw_per_turn * overlap_spacing) + 20
 deck_x = (screen_width - total_width) // 2
 deck_y = (screen_height - deck_height) // 2
 deck_area = pygame.Rect(deck_x, deck_y, deck_width, deck_height)
-yes_button_area = pygame.Rect(125, 400, 40, 30)  # Moved more to the left
-no_button_area = pygame.Rect(270, 400, 40, 30)   # Moved more to the right
+yes_button_area = pygame.Rect(125, 400, 40, 30)  
+no_button_area = pygame.Rect(270, 400, 40, 30)   
 
-# Button configurations
+# Button config
 button_width, button_height = 200, 50
 button_x = 774
 button_y = 315
@@ -227,7 +260,7 @@ play_for_me_button_y = 495  # Positioned below the other buttons
 play_for_me_button_area = pygame.Rect(play_for_me_button_x, play_for_me_button_y, play_for_me_button_width,
                                       play_for_me_button_height)
 
-# Load assets
+# Loading images
 card_images = {}
 for filename in os.listdir(CARD_IMAGES):
     if filename.endswith(".png"):
@@ -357,6 +390,7 @@ def draw_message():
 
 
 def check_hand_validity(player_id):
+    # Player name based on the player ID (1 for "You", others for "Computer")
     player_name = "You" if player_id == 1 else "Computer"
     current_message = game_state.message
     
@@ -387,6 +421,7 @@ def check_hand_validity(player_id):
                 game_state.message = f"{player_name} has a larger group: {cards_str}"
                 print(f"{player_name} has a larger group: {cards_str}")  # Debug
     else:
+        #message if no valid group is found for a non-current player
         if not valid_group:
             print(f"No valid group found for {player_name}")  # Debug
 
@@ -644,6 +679,8 @@ def ai_turn():
         draw_message()
         pygame.display.flip()
         pygame.time.wait(1500)
+        if check_winning_state():
+            return
     
     clear_drawn_card_area()
     
@@ -746,21 +783,24 @@ def play_for_me():
     clear_drawn_card_area()
     game_state.message = "Computer's turn"
 
-
-def check_winning_state():  # check win function
+#Checks winning state
+def check_winning_state():  
     if len(game_state.player_hands[1]) == 0:
-        winner_name = game_state.user_name  # The human player wins
+        # Human player wins
+        winner_name = game_state.user_name
         print("Player wins!")
         show_winning_screen(winner_name, game_state.user_name)  # Show the winning screen
         return True
 
     elif len(game_state.player_hands[2]) == 0:
-        winner_name = "Computer"  # The computer wins
+        # Computer wins
+        winner_name = "Computer"
         print("Computer wins!")
         show_winning_screen(winner_name, game_state.user_name)  # Show the losing screen
         return True
 
     return False
+
 
 
 # Main game loop
@@ -829,7 +869,11 @@ def main_game2_loop():
                             game_state.waiting_for_discard_decision = False
                             game_state.current_player = 2
                             game_state.message = "Computer's turn"
-
+            # condition to check for the winning state
+                if game_state.current_player == 1:  # After the player's action
+                    if check_winning_state():
+                        running = False  # Stop the game loop if the game ends
+        #AI's turn
         if game_state.current_player == 2 and not game_state.dealing and game_state.shuffle_complete:
             current_time = pygame.time.get_ticks()
             if game_state.ai_turn_timer == 0:

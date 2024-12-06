@@ -10,6 +10,7 @@ GAME_IMAGES = "game_images/"
 CARD_BACK_IMAGE_PATH = os.path.join(GAME_IMAGES, "card_back.png")
 
 # Screen setup
+# Screen, player, and card setup
 screen_width, screen_height = 1024, 768
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Notty Game")
@@ -251,8 +252,9 @@ snatch2_button_y = deck_y + deck_height + 25
 snatch2_button_area = pygame.Rect(snatch2_button_x, snatch2_button_y, snatch2_button_width, snatch2_button_height)
 
 waiting_for_discard_decision = False
-yes_button_area = pygame.Rect((screen_width // 2), deck_y + deck_height + 250, 50, 40)  # Moved more to the left
-no_button_area = pygame.Rect((screen_width // 2), deck_y + deck_height + 250, 50, 40)   # Moved more to the right
+yes_button_area = pygame.Rect(screen_width // 2 - 60, deck_y + deck_height + 150, 50, 40)
+no_button_area = pygame.Rect(screen_width // 2 + 10, deck_y + deck_height + 150, 50, 40)
+
 
 # Load assets
 card_images = {}
@@ -275,13 +277,17 @@ def draw_button(text, x, y, width, height, color=(0, 122, 204), text_color=(0, 0
     screen.blit(text_surf, text_rect)
 
 def draw_discard_buttons():
-    if waiting_for_discard_decision:
+    """
+    Draws Yes/No buttons for discarding a valid group of cards.
+    Only appears when the player is prompted to make a discard decision.
+    """
+    if game_state2.waiting_for_discard_decision:
         draw_button("Yes", yes_button_area.x, yes_button_area.y, 
                     yes_button_area.width, yes_button_area.height,
-                    color=(242, 240, 239))
+                    color=(0, 122, 204))
         draw_button("No", no_button_area.x, no_button_area.y, 
                     no_button_area.width, no_button_area.height,
-                    color=(242, 240, 239))
+                    color=(204, 0, 0))
         
 def show_card(card_name, x, y, width=100, height=140, face_down=False):
     if face_down:
@@ -556,7 +562,7 @@ def handle_discard(player_id):
                     y = base_y + card_index * vertical_spacing
                     start_positions.append((base_x, y))
         
-        # End position (deck location)
+      
         end_position = (deck_x, deck_y)
         
         # Store original hand
@@ -623,7 +629,6 @@ def handle_discard(player_id):
     game_state2.message = "Computer 1's turn"
     
 def handle_card_addition(player_id):
-    # Add this print statement
     if player_id == 1:
         print(f"Human adds {len(game_state2.drawn_cards)} cards to hand")
     
@@ -803,25 +808,25 @@ def draw_card_counter(screen, player_hand_size):
 
 def ai_turn():
 
-    print("\nComputer's turn:")  # Add this print
+    print("\nComputer's turn:")  
     if game_state2.current_player == 2 and game_state2.valid_groups[2] is not None:
         if handle_ai_discard():
-            print("Computer discards valid group")  # Add this print
+            print("Computer discards valid group")  
             game_state2.current_player = 1
             game_state2.message = "Your turn"
             game_state2.message_timer = pygame.time.get_ticks()
             return
     
     action = random.choice(['draw', 'snatch', 'skip'])
-    print(f"Computer chooses to: {action}")  # Add this print
+    print(f"Computer chooses to: {action}")  
     
     if action == 'draw':
         if is_hand_full(2):
-            print("Computer cannot draw - hand full")  # Add this print
+            print("Computer cannot draw - hand full")  
             game_state2.message = "Computer's hand is full!"
         else:    
             num_draws = random.randint(1, min(3, game_state2.max_cards_in_hand - len(game_state2.player_hands[2])))
-            print(f"Computer draws {num_draws} cards")  # Add this print
+            print(f"Computer draws {num_draws} cards")  
             temp_drawn_cards = []
 
             game_state2.message = f"Computer draws {num_draws} card{'s' if num_draws > 1 else ''}"
@@ -874,7 +879,7 @@ def ai_turn():
                 pygame.time.wait(20)
 
             game_state2.player_hands[2].extend(temp_drawn_cards)
-            print(f"Cards drawn: {temp_drawn_cards}")  # Add this print
+            print(f"Cards drawn: {temp_drawn_cards}")
             check_hand_validity(2)
             
             if game_state2.current_player == 2 and game_state2.valid_groups[2] is not None:
@@ -883,14 +888,13 @@ def ai_turn():
             
     elif action == 'snatch':
         if is_hand_full(2):
-            print("Computer cannot snatch - hand full")  # Add this print
+            print("Computer cannot snatch - hand full") 
             game_state2.message = "Computer's hand is full!"
         elif game_state2.player_hands[1]:
             game_state2.message = "Computer snatches Human's card"
             snatched_index = random.randint(0, len(game_state2.player_hands[1]) - 1)
             snatched_card = game_state2.player_hands[1].pop(snatched_index)
-            print(f"Computer snatches: {snatched_card}")  # Add this print
-            
+            print(f"Computer snatches: {snatched_card}")  
             start_x = 50 + snatched_index * 30
             start_y = 10
             end_x = 50 + len(game_state2.player_hands[2]) * 30
@@ -916,12 +920,12 @@ def ai_turn():
                 handle_ai_discard()
                 pygame.time.wait(500)
         else:
-            print("Computer cannot snatch - no cards available")  # Add this print
+            print("Computer cannot snatch - no cards available")  
             game_state2.message = "No cards for Computer to snatch!"
     
     else:
         game_state2.message = "Computer skips turn"
-        print("Computer skips turn")  # Add this print
+        print("Computer skips turn") 
         screen.fill((15, 20, 45))
         display_cards(1, 50, 50)
         display_cards(2, 50, 578)
@@ -951,20 +955,20 @@ def ai_turn():
 
 def strategic_ai_turn():
 
-    print("\nStrategic Computer's turn:")  # Add this print
+    print("\nStrategic Computer's turn:")  
     opponent_hand_size = len(game_state2.player_hands[1])
     own_hand_size = len(game_state2.player_hands[2])
     has_valid_group = game_state2.valid_groups[2] is not None
     has_large_group = game_state2.largest_groups[2] and len(game_state2.largest_groups[2]) > 3
     
-    print(f"Current state: Own cards: {own_hand_size}, Opponent cards: {opponent_hand_size}")  # Add this print
-    print(f"Has valid group: {has_valid_group}, Has large group: {has_large_group}")  # Add this print
+    print(f"Current state: Own cards: {own_hand_size}, Opponent cards: {opponent_hand_size}")  
+    print(f"Has valid group: {has_valid_group}, Has large group: {has_large_group}") 
     
     if game_state2.current_player == 2 and (has_valid_group or has_large_group):
         group_to_discard = game_state2.largest_groups[2] if has_large_group else game_state2.valid_groups[2]
         if len(group_to_discard) > 3 or opponent_hand_size < own_hand_size:
             discarded_cards = [str(card) for card in group_to_discard]
-            print(f"Computer decides to discard group: {discarded_cards}")  # Add this print
+            print(f"Computer decides to discard group: {discarded_cards}")  
             game_state2.full_deck.extend(discarded_cards)
             random.shuffle(game_state2.full_deck)
 
@@ -986,11 +990,11 @@ def strategic_ai_turn():
     else:
         action = 'draw' if own_hand_size < game_state2.max_cards_in_hand else 'skip'
     
-    print(f"Computer chooses to: {action}")  # Add this print
+    print(f"Computer chooses to: {action}")  
     
     if action == 'draw':
         if is_hand_full(2):
-            print("Computer cannot draw - hand full")  # Add this print
+            print("Computer cannot draw - hand full")  
             game_state2.message = "Computer's hand is full!"
         else:    
             optimal_draws = min(3, game_state2.max_cards_in_hand - own_hand_size)
@@ -998,7 +1002,7 @@ def strategic_ai_turn():
             temp_drawn_cards = []
 
             game_state2.message = f"Computer draws {num_draws} card{'s' if num_draws > 1 else ''}"
-            print(f"Computer draws {num_draws} cards")  # Add this print
+            print(f"Computer draws {num_draws} cards")  
             
             for _ in range(num_draws):
                 card = draw_card()
@@ -1021,19 +1025,19 @@ def strategic_ai_turn():
                     pygame.time.wait(500)
             
             pygame.time.wait(1000)
-            print(f"Cards drawn: {temp_drawn_cards}")  # Add this print
+            print(f"Cards drawn: {temp_drawn_cards}")  
             game_state2.player_hands[2].extend(temp_drawn_cards)
             check_hand_validity(2)
             
     elif action == 'snatch':
         if is_hand_full(2):
-            print("Computer cannot snatch - hand full")  # Add this print
+            print("Computer cannot snatch - hand full")  
             game_state2.message = "Computer's hand is full!"
         elif game_state2.player_hands[1]:
             game_state2.message = "Computer snatches card"
             snatched_index = random.randint(0, len(game_state2.player_hands[1]) - 1)
             snatched_card = game_state2.player_hands[1].pop(snatched_index)
-            print(f"Computer snatches: {snatched_card}")  # Add this print
+            print(f"Computer snatches: {snatched_card}")  
             game_state2.player_hands[2].append(snatched_card)
             check_hand_validity(2)
             
@@ -1247,7 +1251,7 @@ def main_game3_loop():
                                             game_state2.message = "Do you wish to discard valid group?"
                                             game_state2.waiting_for_discard_decision = True
                                         else:
-                                            game_state2.current_player = 2
+                                            game_state2.current_player = 2  
                                             game_state2.message = "Computer 1's turn"
                                     else:
                                         print("Human cannot snatch - Computer 2 has no cards")  # Added print
@@ -1255,7 +1259,7 @@ def main_game3_loop():
 
                     if game_state2.waiting_for_discard_decision:
                         if yes_button_area.collidepoint(mouse_pos):
-                            handle_discard(1)
+                            handle_discard(1)  # Discard valid group
                         elif no_button_area.collidepoint(mouse_pos):
                             game_state2.waiting_for_discard_decision = False
                             game_state2.current_player = 2
